@@ -1,0 +1,26 @@
+{
+    "visual": {
+      "name": "IFProductSheetTable",
+      "displayName": "Irish Funds Product Sheet Table",
+      "guid": "IFProductSheetTable",
+      "visualClassName": "Visual",
+      "version": "1.0.0.0",
+      "description": "A custom visual to display Irish Funds product sheets in a table using DataTables.js.",
+      "supportUrl": "http://www.bellews.com",
+      "gitHubUrl": ""
+    },
+    "apiVersion": "5.3.0",
+    "author": {
+      "name": "John Bellew",
+      "email": "johnbellew@bellews.com"
+    },
+    "assets": {
+      "icon": "assets/productIcon.png"
+    },
+    "externalJS": [],
+    "externalCSS": [],
+    "style": "style/visual.less",
+    "capabilities": "capabilities.json",
+    "dependencies": null
+  }
+  

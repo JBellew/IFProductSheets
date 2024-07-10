@@ -1,0 +1,94 @@
+{
+  "dataRoles": [
+    {
+      "name": "category",
+      "kind": "Grouping",
+      "displayName": "Category"
+    },
+    {
+      "name": "productType",
+      "kind": "Grouping",
+      "displayName": "Product Type"
+    },
+    {
+      "name": "productSheet",
+      "kind": "Grouping",
+      "displayName": "Product Sheet"
+    },
+    {
+      "name": "output",
+      "kind": "Grouping",
+      "displayName": "Output"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "table": {
+        "rows": {
+          "select": [
+            {
+              "for": {
+                "in": "category"
+              }
+            },
+            {
+              "for": {
+                "in": "productType"
+              }
+            },
+            {
+              "for": {
+                "in": "productSheet"
+              }
+            },
+            {
+              "for": {
+                "in": "output"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "objects": {
+    "tableSettings": {
+      "displayName": "Table Settings",
+      "properties": {
+        "headerColor": {
+          "displayName": "Header Color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "headerFontColor": {
+          "displayName": "Header Font Color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "tableHeight": {
+          "displayName": "Table Height",
+          "type": {
+            "numeric": true
+          }
+        },
+        "pageLength": {
+          "displayName": "Page Length",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    }
+  },
+  "privileges": []
+}
