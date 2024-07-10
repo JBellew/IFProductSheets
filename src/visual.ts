@@ -18,7 +18,7 @@ interface ProductSheetItem {
     Category: string;
     ProductType: string;
     ProductSheet: string;
-    Output: string;
+    Output: string; 
 }
 
 export class Visual implements IVisual {
