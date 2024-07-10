@@ -74,6 +74,10 @@ select {
   padding: 4px;
   color: black;
 }
+div.dt-container div.dt-search label,
+div.dt-container div.dt-search input {
+  font-size: 22px;
+}
 
 /*
  * This combined file was created by the DataTables downloader builder:
