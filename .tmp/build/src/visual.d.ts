@@ -10,8 +10,14 @@ export declare class Visual implements IVisual {
     private formattingSettings;
     private formattingSettingsService;
     private tableElement;
+    private lastUpdateOptions;
+    private selectedCategory;
+    private selectedProductType;
     constructor(options: VisualConstructorOptions);
     update(options: VisualUpdateOptions): void;
     private renderTable;
+    private populateSlicers;
+    private filterData;
+    private updateSlicer;
     getFormattingModel(): powerbi.visuals.FormattingModel;
 }

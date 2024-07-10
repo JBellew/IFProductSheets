@@ -3,11 +3,9 @@
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import "./../style/visual.less";
-import "./../style/datatables.less"; // Import custom DataTables LESS file
-import * as $ from 'jquery'; // Import jQuery first
-import * as moment from 'moment';
+import "./../style/datatables.less";
+import * as $ from 'jquery';
 import DOMPurify from 'dompurify';
-
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
@@ -16,7 +14,6 @@ import 'datatables.net';
 
 import { VisualFormattingSettingsModel } from "./settings";
 
-// Define the interface for Product Items
 interface ProductSheetItem {
     Category: string;
     ProductType: string;
@@ -29,6 +26,9 @@ export class Visual implements IVisual {
     private formattingSettings: VisualFormattingSettingsModel;
     private formattingSettingsService: FormattingSettingsService;
     private tableElement: JQuery<HTMLElement>;
+    private lastUpdateOptions: VisualUpdateOptions;
+    private selectedCategory: string = "";
+    private selectedProductType: string = "";
 
     constructor(options: VisualConstructorOptions) {
         this.formattingSettingsService = new FormattingSettingsService();
@@ -59,8 +59,19 @@ export class Visual implements IVisual {
             </div>
         </div>
         `;
-
-        // Append the table and modal HTML to the target element
+        
+        // Add slicers
+        const slicersHTML = `
+            <div class="slicers">
+                <select id="categorySlicer" class="slicer">
+                    <option value="">Select Category</option>
+                </select>
+                <select id="productTypeSlicer" class="slicer">
+                    <option value="">Select Product Type</option>
+                </select>
+            </div>
+        `;
+        $(this.target).append(slicersHTML);
         $(this.target).append(this.tableElement);
         $(this.target).append(MoreDetailsHTML);
 
@@ -68,9 +79,22 @@ export class Visual implements IVisual {
         $(document).on('click', '#closeProductSheet', function() {
             $('#moreProductSheet').hide();
         });
+
+        // Bind change events to slicers
+        $(document).on('change', '#categorySlicer', () => {
+            this.selectedCategory = $('#categorySlicer').val() as string || "";
+            this.selectedProductType = ""; // Reset product type when category changes
+            this.updateSlicer();
+        });
+        $(document).on('change', '#productTypeSlicer', () => {
+            this.selectedProductType = $('#productTypeSlicer').val() as string || "";
+            this.updateSlicer();
+        });
     }
 
     public update(options: VisualUpdateOptions) {
+        this.lastUpdateOptions = options;
+
         // Populate the formatting settings model
         this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(VisualFormattingSettingsModel, options.dataViews[0]);
 
@@ -78,7 +102,7 @@ export class Visual implements IVisual {
         if (dataViews && dataViews[0]) {
             const dataView = dataViews[0];
 
-            // Map dataView rows to WeeklyNewsItem objects, with default values for missing data
+            // Map dataView rows to ProductSheetItem objects, with default values for missing data
             const tableData = dataView.table.rows.map(row => ({
                 Category: row[0] ? row[0] as string : "No Category",
                 ProductType: row[1] ? row[1] as string : "No Product Type",
@@ -91,7 +115,9 @@ export class Visual implements IVisual {
             const tableHeight = this.formattingSettings.tableSettingsCard.tableHeight.value;
             const pageLength = this.formattingSettings.tableSettingsCard.pageLength.value;
 
-            this.renderTable(tableData, headerColor, headerFontColor, tableHeight, pageLength);
+            this.populateSlicers(tableData);
+            const filteredData = this.filterData(tableData);
+            this.renderTable(filteredData, headerColor, headerFontColor, tableHeight, pageLength);
         }
     }
 
@@ -113,14 +139,14 @@ export class Visual implements IVisual {
             columns: [
                 { title: "Product Sheet", data: "ProductSheet" },
                 { title: "Output", data: "Output" },
-                { title: "Category", data: "Category", visible: false }, // Hidden column for full content
-                { title: "Product Type", data: "ProductType", visible: false } // Hidden column for full content
+                { title: "Category", data: "Category", visible: false },
+                { title: "Product Type", data: "ProductType", visible: false }
             ],
             paging: true,
             searching: true,
             autoWidth: false,
-            pageLength: pageLength, // Set page length
-            order: [[0, 'desc']], // Order 
+            pageLength: pageLength,
+            order: [[0, 'desc']],
             columnDefs: [
                 { targets: 0, width: '30%' },
                 { targets: 1, width: '70%' }
@@ -128,22 +154,65 @@ export class Visual implements IVisual {
             language: {
                 emptyTable: "No Products to show"
             },
-            dom: 'frtp' // Use default DataTables layout
+            dom: 'frtp'
         });
 
         // Apply header colors
         this.tableElement.find('thead th').css('background-color', headerColor);
         this.tableElement.find('thead th').css('color', headerFontColor);
 
-        // Add click event to open news detail div
+        // Add click event to open product detail div
         this.tableElement.find('table tbody').on('click', 'tr', function () {
             const rowData = dataTable.row(this).data();
-            $('#productCategory').text(rowData.Category); // Insert plain text for title
-            $('#productType').text(rowData.ProductType);   // Insert plain text for Product Type
-            $('#productSheet').text(rowData.ProductSheet);   // Insert plain text for Product Sheet
+            $('#productCategory').text(rowData.Category);
+            $('#productType').text(rowData.ProductType);
+            $('#productSheet').text(rowData.ProductSheet);
             $('#productOutput').html(DOMPurify.sanitize(rowData.Output)); // eslint-disable-line powerbi-visuals/no-implied-inner-html
             $('#moreProductSheet').show();
         });
+    }
+
+    private populateSlicers(data: ProductSheetItem[]) {
+        const categories = [...new Set(data.map(item => item.Category))];
+        const productTypes = this.selectedCategory ? [...new Set(data
+            .filter(item => item.Category === this.selectedCategory)
+            .map(item => item.ProductType))] : [];
+
+        const categorySlicer = $('#categorySlicer');
+        const productTypeSlicer = $('#productTypeSlicer');
+
+        categorySlicer.empty().append('<option value="">Select Category</option>');
+        categories.forEach(category => {
+            categorySlicer.append(`<option value="${category}">${category}</option>`);
+        });
+
+        productTypeSlicer.empty().append('<option value="">Select Product Type</option>');
+        productTypes.forEach(type => {
+            productTypeSlicer.append(`<option value="${type}">${type}</option>`);
+        });
+
+        categorySlicer.val(this.selectedCategory);
+        productTypeSlicer.val(this.selectedProductType);
+    }
+
+    private filterData(data: ProductSheetItem[]): ProductSheetItem[] {
+        const selectedCategory = this.selectedCategory;
+        const selectedProductType = this.selectedProductType;
+
+        if (!selectedProductType) {
+            return [];
+        }
+
+        return data.filter(item => {
+            return (selectedCategory ? item.Category === selectedCategory : true) &&
+                   (selectedProductType ? item.ProductType === selectedProductType : true);
+        });
+    }
+
+    private updateSlicer() {
+        if (this.lastUpdateOptions) {
+            this.update(this.lastUpdateOptions);
+        }
     }
 
     public getFormattingModel() {

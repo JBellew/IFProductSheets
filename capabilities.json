@@ -19,6 +19,16 @@
       "name": "output",
       "kind": "Grouping",
       "displayName": "Output"
+    },
+    {
+      "name": "categorySlicer",
+      "kind": "Grouping",
+      "displayName": "Category Slicer"
+    },
+    {
+      "name": "productTypeSlicer",
+      "kind": "Grouping",
+      "displayName": "Product Type Slicer"
     }
   ],
   "dataViewMappings": [
@@ -44,6 +54,16 @@
             {
               "for": {
                 "in": "output"
+              }
+            },
+            {
+              "for": {
+                "in": "categorySlicer"
+              }
+            },
+            {
+              "for": {
+                "in": "productTypeSlicer"
               }
             }
           ]

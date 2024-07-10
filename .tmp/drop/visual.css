@@ -69,6 +69,11 @@
   font-weight: bold;
   min-width: 120px;
 }
+select {
+  font-size: 22px;
+  padding: 8px;
+  color: black;
+}
 
 /*
  * This combined file was created by the DataTables downloader builder:
